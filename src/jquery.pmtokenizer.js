@@ -55,6 +55,7 @@
 
      var reset = function () {
        acInput.val('').focus(); 
+       refreshChoices();
      };
 
      var init = function () {
@@ -68,12 +69,9 @@
      var deselectAllTokens = function() {
        wrapper.find('.token').removeClass('selected');
      }
-     var registerEvents = function () {
-       // $(document).on('click', wrapper, function() {
-       //   acInput.focus(); 
-       // }); 
 
-       $(document).on('click', '.removeToken', function(e) {
+     var registerEvents = function () {
+       $(wrapper).on('click', '.removeToken', function(e) {
          $(this).closest('span').remove();
        }); 
        $(wrapper).on('click', '.token', function(e) {
