@@ -1,0 +1,14 @@
+
+
+.pmTokenizer { font-size: 20px ; }
+.pmTokenizer { 
+  border : 1px solid black; 
+}
+
+.pmTokenizer input { width: 400px;}
+
+.pmTokenizer .token { padding: 5px; }
+.pmTokenizer .acInput { border : 0 ; font-size: 2em }
+
+
+.pmTokenizer .selected { font-weight: bold; background-color: blue; }
