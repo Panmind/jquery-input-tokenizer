@@ -1,26 +1,16 @@
 (function($) {
-
   /** 
    * This pluing applies to an input field and replaces it with a div
    * including a text field where to input new values. 
-   *
-   * TODO: 
-   * # Tokens can be valid or invalid. 
-   * # values should be fetched from an input array
-   * # new values are accepted
-   * # containing area must grow when new records are added
-   * # tokens should have attributes id and value
-   * # valid tokens are appended as hidden fields
-   *
-   *
-   *
    */ 
    $.fn.pmTokenizer = function (options) {
 
      var defaults = {
        minInputLenght : 1 ,
-       source : '', 
-       validator: function(input) {
+       source         : '',
+       handleInvalid  : function() {},
+       handleValid    : function() {},
+       validator      : function(input) {
          var re = new RegExp(/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/);
          return re.test(input);
        }
@@ -45,7 +35,7 @@
      .addClass('choices');
 
      var current = function () {
-       var selected = findSelected(); 
+       var selected = choiceSelected(); 
        if (selected.length) {
          return selected.text();
        }
@@ -73,31 +63,37 @@
 
      var registerEvents = function () {
        $(wrapper).on('click', '.choices li', function() {
-         $(this).closest('li').addClass('selected'); 
-         addTokenFromInput(current());
+         lastKey = '';
+         $(this).addClass('selected'); 
+         addTokenFromSelection($(this).data()); 
          reset (); 
        });
        $(wrapper).on('click', function() {
-         acInput.focus(); 
+         lastKey = ''; 
+         acInput.show().focus(); 
        });
        $(wrapper).on('click', '.removeToken', function(e) {
+         lastKey = '';
          $(this).closest('span').remove();
          e.stopPropagation();
        }); 
        $(wrapper).on('click', '.token', function(e) {
+         lastKey = '';
          deselectAllTokens(); 
          $(this).closest('.token').addClass('selected');
-         acInput.focus();
+         e.stopPropagation();
        });
      }
 
      init(); 
      registerEvents(); 
 
-     /**
-      * Add token from value in input field
-      */
-     var addTokenFromInput = function (token) {
+     var addTokenFromSelection = function(data) {
+       addToken(data['value']);
+       settings.handleValid(data);
+     }
+
+     var addToken = function(token) {
        var span = $('<span />').text (token); 
        span.addClass('token');
       
@@ -106,12 +102,25 @@
         .addClass('removeToken').text('x'); 
 
        removerHandle.appendTo(span);
+       acInput.before(span);
+       reset(); 
+       return span;
+     }
+
+     /**
+      * Add token from value in input field
+      */
+     var addTokenFromInput = function (token) {
+       var span = addToken(token);
 
        if (!settings.validator(token)) {
         span.addClass('invalid');
+        settings.handleInvalid();
+       }
+       else {
+         settings.handleValid(token);
        }
 
-       acInput.before(span);
      }; 
 
      var highlightLastToken = function() {
@@ -137,9 +146,6 @@
        return result;
      }
 
-     /**
-      * 
-      */
      var acInputVal = function() {
        var val =  acInput.val() + String.fromCharCode(lastKey); 
        console.log(val);
@@ -151,7 +157,7 @@
       * for options
       */
      var refreshChoices = function () {
-       wrapper.find('.choices li').remove();
+       wrapper.find('.choices').html('');
        if (acInputVal().length > 0) {
          if (_.isArray(source)) {
          console.log('refreshChoices');
@@ -167,12 +173,9 @@
      };
 
      var populateChoices = function(list) {
-       var template = "\
-       <% _.each(list, function(item) { %> <li><%= item['value'] %></li> <% }); %>";
-       var html = _.template(template, { list : list });
-       if ((html).trim().length > 0) {
-        wrapper.find('ul.choices').append($(html));
-       }
+       _.each(list, function(i) {
+         $('<li />').text( i['value']).data(i).appendTo(wrapper.find('ul.choices')); 
+       });
      }
 
      var currentToken = function() {
@@ -184,6 +187,7 @@
      }
 
      var moveLeft = function() {
+       acInput.hide();
        if (currentToken().length > 0) {
          currentToken().removeClass('selected').prev('.token').addClass('selected');
        } else {
@@ -198,7 +202,7 @@
            currentToken().removeClass('selected').next().addClass('selected');
          } else {
            currentToken().removeClass('selected');
-           acInput.focus();
+           acInput.show().focus();
          }
        } else {
          lastToken().addClass('selected');
@@ -208,28 +212,6 @@
      var inputEmpty = function() {
        return acInput.val() == '';
      }
-
-     // $(acInput).on('keyup', function(e) {
-     //   switch(e.keyCode) {
-     //     case 9: 
-     //     case 13: 
-     //     case 188:  
-     //     case 38: 
-     //     case 40:
-     //     break; 
-
-     //     case 37: // left 
-     //     moveLeft();
-
-     //     break;
-     //     case 39: // right
-     //     moveRight();
-
-     //     break;
-     //     default:
-     //     refreshChoices(); 
-     //   }
-     // });
 
      $(wrapper).on('mouseover', '.choices li', function() {
        wrapper.find('.choices li.selected').removeClass('selected'); 
@@ -241,24 +223,32 @@
       */
      var lastKey; 
 
-     $(acInput).on('keydown', function(e) {
+     $(wrapper).on('keydown', function(e) {
        lastKey = e.keyCode; 
        switch (e.keyCode) { 
          case 9: 
          case 13: 
          case 188:  // tab, enter, or comma
            if (!inputEmpty())  {
-            addTokenFromInput(current()); 
+             if (choiceSelected().length > 0) {
+               addTokenFromSelection(choiceSelected().data());
+             } else {
+               addTokenFromInput(current()); 
+             }
             reset ();
           }
            e.preventDefault();
            break;
 
          case 8: // back
-           if (acInput.val().length == 0) {
-             moveLeft();
-           }; 
-           refreshChoices();
+           if (tokenSelected().length > 0) {
+             tokenSelected().remove();
+           } else {
+             if (acInput.val().length == 0) {
+               moveLeft();
+             }; 
+             refreshChoices();
+           }
            break;
 
          case 37: // left 
@@ -280,29 +270,30 @@
             break;
 
          default: 
-            console.log('default');
+            acInput.show(); 
             setInputSize();
             refreshChoices(); 
+            deselectAllTokens();
             break;
-
        }
-
      }); 
 
      var setInputSize = function() {
        acInput.width((acInput.width() + 20) + 'px');
      }
-
      var choicesPresent = function() {
       return wrapper.find('.choices li').length > 0;
      };
-     var findSelected = function() {
+     var choiceSelected = function() {
        return wrapper.find('.choices li.selected');
      };
+     var tokenSelected = function() {
+       return wrapper.find('.token.selected');
+     }
 
      var moveSelectionUp = function() {
        if (choicesPresent()) {
-         var selected = findSelected(); 
+         var selected = choiceSelected(); 
          if (selected.length) {
            if (selected.prev().length > 0) { 
              selected.removeClass('selected').prev().addClass('selected');
@@ -313,14 +304,11 @@
 
      var moveSelectionDown = function() {
        if (choicesPresent()) {
-         var selected = findSelected(); 
+         var selected = choiceSelected(); 
          if (selected.length) {
            if (selected.next().length > 0) {
              selected.removeClass('selected').next().addClass('selected');
            }
-           // else {
-           //   wrapper.find('.choices li:first').addClass('selected');
-           // }
          }
          else {
            wrapper.find('.choices li:first').addClass('selected');
@@ -328,6 +316,5 @@
        }
      };
    }
-
 })(jQuery); 
 
