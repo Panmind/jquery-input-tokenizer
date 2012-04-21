@@ -17,11 +17,8 @@
      };
 
      settings = _.defaults(options, defaults);
-
      var source = settings.source; 
-
-     // var label    = $('<label/>').attr('for', $(this).attr('id')); 
-     var input    = $(this);
+     var input = $(this);
      input.hide(); 
 
      var wrapper  = $('<div/>').addClass('pmTokenizer'); 

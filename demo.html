@@ -7,22 +7,34 @@
     <script type="text/javascript" src="src/jquery.pmtokenizer.js"></script>
     <script type="text/javascript" charset="utf-8">
 
-      $(function() {
-        var data = [
-          { id : 1, value : 'Mario', image : 'href://www.google.com/' },
-          { id : 2, value : 'Michele', image : 'href://www.google.com/' },
-          { id : 3, value : 'Andrea', image : 'href://www.google.com/' },
-          { id : 4, value : 'Romolo', image : 'href://www.google.com/' },
-          { id : 5, value : 'Quirino', image : 'href://www.google.com/' },
-          { id : 6, value : 'Numa', image : 'href://www.google.com/' },
-          { id : 7, value : 'Castore', image : 'href://www.google.com/' },
-          { id : 8, value : 'Polluce', image : 'href://www.google.com/' },
-          { id : 9, value : 'Enea', image : 'href://www.google.com/' },
-          { id : 10, value : 'Virgilio', image : 'href://www.google.com/' }
+    $(function() {
+      var data = [
+        { id : 1, value : 'Mario', image : 'href://www.google.com/' },
+        { id : 2, value : 'Michele', image : 'href://www.google.com/' },
+        { id : 3, value : 'Andrea', image : 'href://www.google.com/' },
+        { id : 4, value : 'Romolo', image : 'href://www.google.com/' },
+        { id : 5, value : 'Quirino', image : 'href://www.google.com/' },
+        { id : 6, value : 'Numa', image : 'href://www.google.com/' },
+        { id : 7, value : 'Castore', image : 'href://www.google.com/' },
+        { id : 8, value : 'Polluce', image : 'href://www.google.com/' },
+        { id : 9, value : 'Enea', image : 'href://www.google.com/' },
+        { id : 10, value : 'Virgilio', image : 'href://www.google.com/' }
         ] ; 
 
-        $('#demo1').pmTokenizer({ source : data});
+        function log(data) {
+          if (_.isString(data)) {
+            $('#logs').text($('#logs').text() + '\n' + data);
+          } else {
+            var string = [data.id, data.value].join(' - ');
+            $('#logs').text($('#logs').text() + '\n' + string);
+          }
+        };
+
+        $('#demo1').pmTokenizer({source : data, handleValid : function(data) {
+          log(data);
+        }
       });
+    });
     </script>
   </head>
   <body>
@@ -31,7 +43,7 @@
 
     <hr />
     <h2>Events</h2>
-    <textarea cols="100" rows="40" id="logs">
+    <textarea cols="100" rows="40" id="logs" readonly="readonly">
 
     </textarea>
   </body>
