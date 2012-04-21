@@ -17,11 +17,13 @@
    */ 
    $.fn.pmTokenizer = function (options) {
 
-     // console.log( options );
-
      var defaults = {
        minInputLenght : 1 ,
-       source : ''
+       source : '', 
+       validator: function(input) {
+         var re = new RegExp(/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/);
+         return re.test(input);
+       }
      };
 
      settings = _.defaults(options, defaults);
@@ -32,7 +34,6 @@
      var input    = $(this);
      input.hide(); 
 
-     var tagList  = $('<ul/>');
      var wrapper  = $('<div/>').addClass('pmTokenizer'); 
 
      var acInput = $('<input/>')
@@ -54,12 +55,12 @@
      };
 
      var reset = function () {
+       acInput.width('3em');
        acInput.val('').focus(); 
        refreshChoices();
      };
 
      var init = function () {
-       wrapper.append (tagList);
        wrapper.append (acInput);
        input.after (wrapper);
        wrapper.append(choices);
@@ -71,8 +72,17 @@
      }
 
      var registerEvents = function () {
+       $(wrapper).on('click', '.choices li', function() {
+         $(this).closest('li').addClass('selected'); 
+         addTokenFromInput(current());
+         reset (); 
+       });
+       $(wrapper).on('click', function() {
+         acInput.focus(); 
+       });
        $(wrapper).on('click', '.removeToken', function(e) {
          $(this).closest('span').remove();
+         e.stopPropagation();
        }); 
        $(wrapper).on('click', '.token', function(e) {
          deselectAllTokens(); 
@@ -87,8 +97,8 @@
      /**
       * Add token from value in input field
       */
-     var addTokenFromInput = function (tag) {
-       var span = $('<span />').text (tag); 
+     var addTokenFromInput = function (token) {
+       var span = $('<span />').text (token); 
        span.addClass('token');
       
        var removerHandle = $('<a/>')
@@ -96,6 +106,11 @@
         .addClass('removeToken').text('x'); 
 
        removerHandle.appendTo(span);
+
+       if (!settings.validator(token)) {
+        span.addClass('invalid');
+       }
+
        acInput.before(span);
      }; 
 
@@ -224,7 +239,6 @@
      /**
       * keydown event on input field
       */
-
      var lastKey; 
 
      $(acInput).on('keydown', function(e) {
@@ -267,12 +281,17 @@
 
          default: 
             console.log('default');
+            setInputSize();
             refreshChoices(); 
             break;
 
        }
 
      }); 
+
+     var setInputSize = function() {
+       acInput.width((acInput.width() + 20) + 'px');
+     }
 
      var choicesPresent = function() {
       return wrapper.find('.choices li').length > 0;
@@ -287,8 +306,6 @@
          if (selected.length) {
            if (selected.prev().length > 0) { 
              selected.removeClass('selected').prev().addClass('selected');
-           }
-           else {
            }
          }
        }
