@@ -21,19 +21,23 @@
         { id : 10, value : 'Virgilio', image : 'href://www.google.com/' }
         ] ; 
 
-        function log(data) {
+        function log(data, level) {
           if (_.isString(data)) {
-            $('#logs').text($('#logs').text() + '\n' + data);
+            $('#logs').text($('#logs').text() + '\n' + level + ' --- ' + data);
           } else {
             var string = [data.id, data.value].join(' - ');
-            $('#logs').text($('#logs').text() + '\n' + string);
+            $('#logs').text($('#logs').text() + '\n' + level + ' --- ' + string);
           }
         };
 
-        $('#demo1').pmTokenizer({source : data, handleValid : function(data) {
-          log(data);
-        }
-      });
+        $('#demo1').pmTokenizer({source : data,
+          handleValid : function(data) {
+            log(data, 'info');
+          }, 
+          handleInvalid : function(data) {
+            log(data, 'error');
+          }
+        });
     });
     </script>
   </head>
@@ -43,8 +47,6 @@
 
     <hr />
     <h2>Events</h2>
-    <textarea cols="100" rows="40" id="logs" readonly="readonly">
-
-    </textarea>
+    <textarea cols="100" rows="40" id="logs" readonly="readonly"></textarea>
   </body>
 </html>

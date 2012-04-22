@@ -112,7 +112,7 @@
 
        if (!settings.validator(token)) {
         span.addClass('invalid');
-        settings.handleInvalid();
+        settings.handleInvalid(token);
        }
        else {
          settings.handleValid(token);
