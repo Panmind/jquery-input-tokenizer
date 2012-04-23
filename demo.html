@@ -9,23 +9,23 @@
 
     $(function() {
       var data = [
-        { id : 1, value : 'Mario', image : 'href://www.google.com/' },
-        { id : 2, value : 'Michele', image : 'href://www.google.com/' },
-        { id : 3, value : 'Andrea', image : 'href://www.google.com/' },
-        { id : 4, value : 'Romolo', image : 'href://www.google.com/' },
-        { id : 5, value : 'Quirino', image : 'href://www.google.com/' },
-        { id : 6, value : 'Numa', image : 'href://www.google.com/' },
-        { id : 7, value : 'Castore', image : 'href://www.google.com/' },
-        { id : 8, value : 'Polluce', image : 'href://www.google.com/' },
-        { id : 9, value : 'Enea', image : 'href://www.google.com/' },
-        { id : 10, value : 'Virgilio', image : 'href://www.google.com/' }
+        { id : 1, label : 'Mario', image : 'href://www.google.com/' },
+        { id : 2, label : 'Michele', image : 'href://www.google.com/' },
+        { id : 3, label : 'Andrea', image : 'href://www.google.com/' },
+        { id : 4, label : 'Romolo', image : 'href://www.google.com/' },
+        { id : 5, label : 'Quirino', image : 'href://www.google.com/' },
+        { id : 6, label : 'Numa', image : 'href://www.google.com/' },
+        { id : 7, label : 'Castore', image : 'href://www.google.com/' },
+        { id : 8, label : 'Polluce', image : 'href://www.google.com/' },
+        { id : 9, label : 'Enea', image : 'href://www.google.com/' },
+        { id : 10, label : 'Virgilio', image : 'href://www.google.com/' }
         ] ; 
 
         function log(data, level) {
           if (_.isString(data)) {
             $('#logs').text($('#logs').text() + '\n' + level + ' --- ' + data);
           } else {
-            var string = [data.id, data.value].join(' - ');
+            var string = [data.id, data.label].join(' - ');
             $('#logs').text($('#logs').text() + '\n' + level + ' --- ' + string);
           }
         };
@@ -45,7 +45,6 @@
     <h1 id="demo">Demo</h1>    
     <input type="text" id="demo1" />
 
-    <hr />
     <h2>Events</h2>
     <textarea cols="100" rows="40" id="logs" readonly="readonly"></textarea>
   </body>

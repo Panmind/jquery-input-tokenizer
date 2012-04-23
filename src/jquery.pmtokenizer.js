@@ -4,10 +4,14 @@
    * including a text field where to input new values. 
    */ 
    $.fn.pmTokenizer = function (options) {
-
      var defaults = {
        minInputLenght : 1 ,
        source         : '',
+       filterHander   : function(query, data) {
+         var reg = new RegExp(query, 'gi');
+         return reg.test(data['label']) ;
+       },
+       labelHandler   : function(data) { return data.label },
        handleInvalid  : function() {},
        handleValid    : function() {},
        validator      : function(input) {
@@ -51,6 +55,7 @@
        wrapper.append (acInput);
        input.after (wrapper);
        wrapper.append(choices);
+       wrapper.find('.choices').hide();
        acInput.focus(); 
      }
 
@@ -86,7 +91,7 @@
      registerEvents(); 
 
      var addTokenFromSelection = function(data) {
-       addToken(data['value']);
+       addToken(settings.labelHandler(data));
        settings.handleValid(data);
      }
 
@@ -129,23 +134,12 @@
      };
 
      var filterSource = function(listItem) {
-       console.log('filterSource');
        var val = acInputVal();
-       var reg = new RegExp(val, 'gi'); 
-       var item = listItem['value'];
-       var result = reg.test(item) ; 
-       if (result == true) {
-         // console.log(reg, r, val);
-       }
-       else {
-         console.log(reg, item);
-       }
-       return result;
+       return settings.filterHander(val, listItem);
      }
 
      var acInputVal = function() {
        var val =  acInput.val() + String.fromCharCode(lastKey); 
-       console.log(val);
        return val;
      }
 
@@ -157,10 +151,14 @@
        wrapper.find('.choices').html('');
        if (acInputVal().length > 0) {
          if (_.isArray(source)) {
-         console.log('refreshChoices');
            // find values
            var filtered = _.filter(source, filterSource);
-           populateChoices(filtered);
+           if (filtered.length > 0 ) {
+             wrapper.find('.choices').show();
+             populateChoices(filtered);
+           } else {
+             wrapper.find('.choices').hide();
+           }
          } 
          else if (_.isString(source)) {
            // TODO: load results from ajax
@@ -171,7 +169,8 @@
 
      var populateChoices = function(list) {
        _.each(list, function(i) {
-         $('<li />').text( i['value']).data(i).appendTo(wrapper.find('ul.choices')); 
+         $('<li />').text(settings.labelHandler(i))
+          .data(i).appendTo(wrapper.find('ul.choices'));
        });
      }
 

@@ -1,5 +1,5 @@
 
-.pmTokenizer { font-size: 20px ; }
+.pmTokenizer { font-size: 20px ; position: relative; }
 .pmTokenizer { border : 1px solid black; }
 .pmTokenizer input { width: 30px;}
 .pmTokenizer .acInput { border : 0 ; font-size: 1em }
@@ -19,3 +19,7 @@
 .pmTokenizer .token.invalid.selected { background-color: red; }
 .pmTokenizer input { outline: none }
 .pmTokenizer .choices li { cursor: pointer; }
+.pmTokenizer .choices { position: absolute; width: 100%;
+background: #ddd; border: 1px solid #ccc; }
+
+.pmTokenizer ul, .pmTokenizer ul li { padding: 0; margin: 0 }
