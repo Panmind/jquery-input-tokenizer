@@ -1,16 +1,21 @@
+/**
+ * jquery.pmtokenizer.js
+ *
+ * User input tokenizer for jquery/underscore.
+ *
+ * Fabrizio Regini - Panmind Inc (c) 2012
+ *
+ */
 (function($) {
-  /** 
-   * This pluing applies to an input field and replaces it with a div
-   * including a text field where to input new values. 
-   */ 
    $.fn.pmTokenizer = function (options) {
      var defaults = {
        minInputLenght : 1 ,
        source         : '',
        filterHander   : function(query, data) {
          var reg = new RegExp(query, 'gi');
-         return reg.test(data['label']) ;
+         return reg.test(data.label) ;
        },
+       tokenHandler   : function(data) { return data.label },
        labelHandler   : function(data) { return data.label },
        handleInvalid  : function() {},
        handleValid    : function() {},
@@ -26,7 +31,6 @@
      input.hide(); 
 
      var wrapper  = $('<div/>').addClass('pmTokenizer'); 
-
      var acInput = $('<input/>')
      .attr('type', 'text')
      .addClass('acInput')
@@ -163,14 +167,14 @@
          else if (_.isString(source)) {
            // TODO: load results from ajax
          }
-       } else {
        }
      };
 
      var populateChoices = function(list) {
        _.each(list, function(i) {
-         $('<li />').text(settings.labelHandler(i))
-          .data(i).appendTo(wrapper.find('ul.choices'));
+         $('<li />').html( settings.labelHandler(i) )
+         .data(i)
+         .appendTo(wrapper.find('ul.choices'));
        });
      }
 
@@ -313,4 +317,3 @@
      };
    }
 })(jQuery); 
-

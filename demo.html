@@ -9,16 +9,15 @@
 
     $(function() {
       var data = [
-        { id : 1, label : 'Mario', image : 'href://www.google.com/' },
-        { id : 2, label : 'Michele', image : 'href://www.google.com/' },
-        { id : 3, label : 'Andrea', image : 'href://www.google.com/' },
-        { id : 4, label : 'Romolo', image : 'href://www.google.com/' },
-        { id : 5, label : 'Quirino', image : 'href://www.google.com/' },
-        { id : 6, label : 'Numa', image : 'href://www.google.com/' },
-        { id : 7, label : 'Castore', image : 'href://www.google.com/' },
-        { id : 8, label : 'Polluce', image : 'href://www.google.com/' },
-        { id : 9, label : 'Enea', image : 'href://www.google.com/' },
-        { id : 10, label : 'Virgilio', image : 'href://www.google.com/' }
+        { id : 1 , label : 'Superman'        , email : 'test@example.org' , image : 'http://lorempixel.com/100/100' } ,
+        { id : 2 , label : 'Ironman'         , email : 'test@example.org' , image : 'http://lorempixel.com/100/100' } ,
+        { id : 3 , label : 'Batman'          , email : 'test@example.org' , image : 'http://lorempixel.com/100/100' } ,
+        { id : 4 , label : 'Thor'            , email : 'test@example.org' , image : 'http://lorempixel.com/100/100' } ,
+        { id : 5 , label : 'Hulk'            , email : 'test@example.org' , image : 'http://lorempixel.com/100/100' } ,
+        { id : 6 , label : 'Wolverine'       , email : 'test@example.org' , image : 'http://lorempixel.com/100/100' } ,
+        { id : 7 , label : 'Captain America' , email : 'test@example.org' , image : 'http://lorempixel.com/100/100' } ,
+        { id : 8 , label : 'Spiderman'       , email : 'test@example.org' , image : 'http://lorempixel.com/100/100' } ,
+        { id : 9 , label : 'Robin'           , email : 'test@example.org' , image : 'http://lorempixel.com/100/100' } ,
         ] ; 
 
         function log(data, level) {
@@ -31,6 +30,15 @@
         };
 
         $('#demo1').pmTokenizer({source : data,
+          // labelHandler handles html to show in autocomplete
+          labelHandler : function(data) {
+            var template = _.template('\
+            <img src="<%= image %>" />\
+            <span class="name"><%= label %></span>\
+            <span class="email"><%= email %></span>\
+            ');
+            return template(data);
+          },
           handleValid : function(data) {
             log(data, 'info');
           }, 
