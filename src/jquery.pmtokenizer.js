@@ -99,8 +99,12 @@
        settings.handleValid(data);
      }
 
-     var addToken = function(token) {
-       var span = $('<span />').text (token); 
+     var addToken = function(token, escape) {
+       if (escape) {
+         var span = $('<span />').text (token); 
+       } else {
+         var span = $('<span />').html (token); 
+       }
        span.addClass('token');
       
        var removerHandle = $('<a/>')
@@ -117,7 +121,7 @@
       * Add token from value in input field
       */
      var addTokenFromInput = function (token) {
-       var span = addToken(token);
+       var span = addToken(token, true);
 
        if (!settings.validator(token)) {
         span.addClass('invalid');
