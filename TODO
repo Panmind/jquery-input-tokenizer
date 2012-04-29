@@ -1,9 +1,6 @@
-- avoid event with CTRL-R 
-- space should not trigger choices
-V validate email address
-- save data for invalid input
-V function to trigger when valid input is saved
-V function to trigger when invalid input is received
+TODO: 
+
+- documentation
 - when hitting DEL, suggestions should be shown if any 
-- deletion of selected token hitting DEL
 - don't write if a token is selected
+- Highlight X on mouse over 
