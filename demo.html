@@ -25,16 +25,11 @@
         { id : 9 , label : 'Robin'           , email : 'test@example.org' , image : 'http://lorempixel.com/100/100' } ,
         ] ; 
 
-        function log(data, level) {
-          if (_.isString(data)) {
-            $('#logs').text($('#logs').text() + '\n' + level + ' --- ' + data);
-          } else {
-            var string = [data.id, data.label].join(' - ');
-            $('#logs').text($('#logs').text() + '\n' + level + ' --- ' + string);
-          }
+        function log(token, level, data) {
+          $('#logs').text($('#logs').text() + '\n' + level + ' --- ' + token + '---' +  data);
         };
 
-        $('#demo1').pmTokenizer({source : data,
+        var tokenizer = new $.pmTokenizer($('#demo1'), {source : data,
           // labelHandler handles html to show in autocomplete
           labelHandler : function(data) {
             var template = _.template('\
@@ -44,12 +39,12 @@
             ');
             return template(data);
           },
-          handleValid : function(data) {
-            log(data, 'info');
-          }, 
-          handleInvalid : function(data) {
-            log(data, 'error');
-          }
+          tokenHandler : function(data) {
+            var template = _.template('\
+            <%= _.isString(data) ? data : data.label %>\
+            ');
+            return template({data : data});
+          },
         });
     });
     </script>

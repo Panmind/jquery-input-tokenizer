@@ -6,38 +6,49 @@
  * Fabrizio Regini - Panmind Inc (c) 2012
  *
  */
+
 (function($) {
-   $.fn.pmTokenizer = function (options) {
+
+  $.pmTokenizer = function(input, options) {
+
+     var root = this;
+
      var defaults = {
+       escapeInput : true,
+       escapeSelection : true,
        minInputLenght : 1 ,
        source         : '',
        filterHander   : function(query, data) {
          var reg = new RegExp(query, 'gi');
          return reg.test(data.label) ;
        },
+       promptMessage  : 'Input name or email addresses',
        tokenHandler   : function(data) { return data.label },
        labelHandler   : function(data) { return data.label },
-       handleInvalid  : function() {},
-       handleValid    : function() {},
+       onAddition     : function() {},
+       onDeletion     : function() {},
+       onValid        : function() {},
+       onInvalid      : function() {},
        validator      : function(input) {
          var re = new RegExp(/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/);
          return re.test(input);
        }
      };
 
-     settings = _.defaults(options, defaults);
-     var source = settings.source; 
-     var input = $(this);
-     input.hide(); 
+     this.tokenizeInput = function() {
+       addTokenFromInput(current());
+     }
 
+     var settings = _.defaults(options, defaults);
+     var source = settings.source;
      var wrapper  = $('<div/>').addClass('pmTokenizer'); 
      var acInput = $('<input/>')
-     .attr('type', 'text')
-     .addClass('acInput')
-     .attr('autocomplete', 'off');
+        .attr("id", "autocomplete-input")
+        .addClass('acInput')
+        .attr('type', 'text')
+        .attr('autocomplete', 'off');
 
-     var choices = $('<ul />')
-     .addClass('choices');
+     var choices = $('<ul/>').addClass('choices');
 
      var current = function () {
        var selected = choiceSelected(); 
@@ -45,22 +56,36 @@
          return selected.text();
        }
        else {
-         return $.trim (acInput.val ());
+         return $.trim (acInput.val());
        }
      };
 
-     var reset = function () {
-       acInput.width('3em');
-       acInput.val('').focus(); 
-       refreshChoices();
+     this.setPrompt = function() {
+       acInput.hide();
+       var template = _.template('<div class="prompt"><%= message %></div>');
+       acInput.after($(template({ message : settings.promptMessage })));
      };
 
-     var init = function () {
+    this.reset = function () {
+       wrapper.find('.prompt').remove();
+       acInput.show();
+       acInput.removeAttr('readonly');
+       acInput.width('20px');
+       refreshChoices();
+       acInput.val('').focus();
+     };
+
+     this.init = function () {
+       // hide original input
+
        wrapper.append (acInput);
-       input.after (wrapper);
        wrapper.append(choices);
+
        wrapper.find('.choices').hide();
-       acInput.focus(); 
+       input.hide();
+
+       input.after (wrapper);
+       this.setPrompt();
      }
 
      var deselectAllTokens = function() {
@@ -71,12 +96,12 @@
        $(wrapper).on('click', '.choices li', function() {
          lastKey = '';
          $(this).addClass('selected'); 
-         addTokenFromSelection($(this).data()); 
-         reset (); 
+         addTokenFromSelection($(this).data('store'));
+         root.reset ();
        });
-       $(wrapper).on('click', function() {
+       $(wrapper).on('click', function(e) {
          lastKey = ''; 
-         acInput.show().focus(); 
+         root.reset();
        });
        $(wrapper).on('click', '.removeToken', function(e) {
          lastKey = '';
@@ -87,51 +112,72 @@
          lastKey = '';
          deselectAllTokens(); 
          $(this).closest('.token').addClass('selected');
-         e.stopPropagation();
+         acInput.focus();
        });
+     };
+
+     this.clear = function() {
+       wrapper.find('.token').remove();
+       this.reset();
+       this.setPrompt();
      }
 
-     init(); 
+     this.init();
      registerEvents(); 
 
+     var removeToken = function(token) {
+       var data = token.data('store');
+       token.remove();
+       settings.onDeletion(data);
+     };
+
      var addTokenFromSelection = function(data) {
-       addToken(settings.labelHandler(data));
-       settings.handleValid(data);
-     }
-
-     var addToken = function(token, escape) {
-       if (escape) {
-         var span = $('<span />').text (token); 
-       } else {
-         var span = $('<span />').html (token); 
-       }
-       span.addClass('token');
-      
-       var removerHandle = $('<a/>')
-        .attr('href', 'javascript:')
-        .addClass('removeToken').text('x'); 
-
-       removerHandle.appendTo(span);
-       acInput.before(span);
-       reset(); 
-       return span;
-     }
+       var ele = addToken(settings.tokenHandler(data), settings.escapeSelection);
+       $(ele).data('store', data);
+       settings.onValid(data);
+       settings.onAddition(data);
+     };
 
      /**
       * Add token from value in input field
       */
      var addTokenFromInput = function (token) {
-       var span = addToken(token, true);
+       if (token == '') return;
+       var span = addToken(settings.tokenHandler(token), settings.escapeInput);
+       var data = { token : token };
 
        if (!settings.validator(token)) {
-        span.addClass('invalid');
-        settings.handleInvalid(token);
+         span.addClass('invalid');
+         data.valid = false;
+         settings.onInvalid(token);
        }
        else {
-         settings.handleValid(token);
+         settings.onValid(token);
+         data.valid = true;
        }
+       $(span).data('store', data);
+       settings.onAddition(data);
+     };
 
-     }; 
+     var addToken = function(token, escape) {
+       var span;
+       if (escape) {
+         span = $('<span />').text (token);
+       } else {
+         span = $('<span />').html ($(token));
+       }
+       $(span).addClass('token');
+      
+       var removerHandle = $('<a/>')
+        .attr('href', 'javascript:')
+        .addClass('removeToken').html('&#215;');
+
+       removerHandle.appendTo(span);
+
+       acInput.before(span);
+       root.reset();
+       return span;
+     };
 
      var highlightLastToken = function() {
        wrapper.find('.token:last').addClass('selected');
@@ -156,16 +202,17 @@
       * for options
       */
      var refreshChoices = function () {
-       wrapper.find('.choices').html('');
+       wrapper.find('ul.choices li').remove();
        if (acInputVal().length > 0) {
          if (_.isArray(source)) {
            // find values
            var filtered = _.filter(source, filterSource);
            if (filtered.length > 0 ) {
-             wrapper.find('.choices').show();
+             wrapper.find('ul.choices').show();
              populateChoices(filtered);
+
            } else {
-             wrapper.find('.choices').hide();
+             wrapper.find('ul.choices').hide();
            }
          } 
          else if (_.isString(source)) {
@@ -175,10 +222,12 @@
      };
 
      var populateChoices = function(list) {
+       var item ;
        _.each(list, function(i) {
-         $('<li />').html( settings.labelHandler(i) )
-         .data(i)
-         .appendTo(wrapper.find('ul.choices'));
+         item = $('<li />').html( settings.labelHandler(i) )
+         item.data('store', i);
+         wrapper.find('ul.choices').append($(item));
+         // $(item).appendTo(wrapper.find('ul.choices'));
        });
      }
 
@@ -191,7 +240,7 @@
      }
 
      var moveLeft = function() {
-       acInput.hide();
+       acInput.attr('readonly', 'readonly');
        if (currentToken().length > 0) {
          currentToken().removeClass('selected').prev('.token').addClass('selected');
        } else {
@@ -206,7 +255,7 @@
            currentToken().removeClass('selected').next().addClass('selected');
          } else {
            currentToken().removeClass('selected');
-           acInput.show().focus();
+           root.reset();
          }
        } else {
          lastToken().addClass('selected');
@@ -227,31 +276,41 @@
       */
      var lastKey; 
 
+     wrapper.find('.token').on('keydown', function(e) {
+       e.preventDefault();
+     });
+
      $(wrapper).on('keydown', function(e) {
        lastKey = e.keyCode; 
        switch (e.keyCode) { 
          case 9: 
          case 13: 
          case 188:  // tab, enter, or comma
-           if (!inputEmpty())  {
+           if (inputEmpty())  {
+
+           } else {
              if (choiceSelected().length > 0) {
-               addTokenFromSelection(choiceSelected().data());
+               addTokenFromSelection(choiceSelected().data('store'));
              } else {
                addTokenFromInput(current()); 
              }
-            reset ();
-          }
+           }
+           root.reset();
            e.preventDefault();
            break;
 
          case 8: // back
+           e.stopImmediatePropagation();
            if (tokenSelected().length > 0) {
-             tokenSelected().remove();
-           } else {
-             if (acInput.val().length == 0) {
-               moveLeft();
-             }; 
-             refreshChoices();
+             // If a token is selected, remove it
+             // and move to the next token or reset
+             e.preventDefault();
+             removeToken(tokenSelected());
+             if (lastToken().length == 0) root.reset ();
+             else moveLeft();
+           }
+           else if (acInput.val().length == 0 && lastToken().length > 0) {
+             moveLeft();
            }
            break;
 
@@ -273,6 +332,11 @@
             e.preventDefault();
             break;
 
+         // TODO: find a better way to handle strange keys like Apples'CMD
+         case 91:
+           e.preventDefault();
+           break;
+
          default: 
             acInput.show(); 
             setInputSize();
@@ -283,7 +347,7 @@
      }); 
 
      var setInputSize = function() {
-       acInput.width((acInput.width() + 20) + 'px');
+       acInput.width((acInput.width() + 10) + 'px');
      }
      var choicesPresent = function() {
       return wrapper.find('.choices li').length > 0;
